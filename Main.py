@@ -29,12 +29,36 @@ def LoadImage(image,scale,clip): # funkcja ktora laduje obrazy
 
     return scaledPicture # zwrocenie przeskalowanego obrazu
 
+class Button():
+    def __init__(self,x,y,width,height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+    def InvisibleButton(self):
+        position = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()[0]
+
+        if position[0] > self.x and position[0] < self.x + self.width and position[1] > self.y and position[1] < self.y + self.height and click == 1:
+            return True
+        else:
+            return False
+    def FocusedButton(self,picture):
+        position = pygame.mouse.get_pos()
+        if position[0] > self.x and position[0] < self.x + self.width and position[1] > self.y and position[1] < self.y + self.height:
+            screen.blit(picture,(self.x,self.y))
+
+
+
+
+
+
 class Pictures(pygame.sprite.Sprite): # klasa do tla ktra dziedziczy po spraitach
 
     def __init__(self,image,width,height): # konstruktor klasy
         self.originalImage = pygame.image.load(image)  # zaladowanie obrazu (funkcja wbudowana do biblioteki pygame)
         self.image = pygame.transform.scale(self.originalImage, (width, height))  # rozciagniecie obrazu do wielkosci okna
-        self.rect = self.image.get_rect() # pobranie plaszczyzny(prostokatnej) tla
+        self.rect = self.image.get_rect() # pobranie plaszczyzny(prostokatnej)
 
 
 
@@ -143,8 +167,8 @@ class Player(pygame.sprite.Sprite): # klasa obslugujaca gracza
 
     def checkColission(self):
         for gameObject in self.colissionList: # sprawdzanie listy kolizji
-            self.colission = self.rect.colliderect(gameObject.rect)
-            if self.colission: # jesli kolizja wystapi to:
+            self.colission = self.rect.colliderect(gameObject.rect) or self.rect.x < 10 or self.rect.x + 46  > 790
+            if self.colission : # jesli kolizja wystapi to:
                 self.Death() # smierc gracza
                 for gameObject in self.colissionList: # i smierc wszystkich obiektow kolizyjnych
                     gameObject.Death()
@@ -591,14 +615,19 @@ class Panel():
         isStart = False
         screen.blit(backgroundPanel.image, (0, 0))
         screen.blit(panelPicture.image,(150,75))
-        screen.blit(panelOptions.image,(250,300))
-        if pygame.key.get_pressed()[pygame.K_SPACE]:
+        screen.blit(panelPlayOption.image,(315,300))
+        screen.blit(panelExitOption.image,(315,430))
+
+        playButton.FocusedButton(panelPlayFocusedOption.image)
+        exitButton.FocusedButton(panelExitFocusedOption.image)
+
+        if pygame.key.get_pressed()[pygame.K_SPACE] or playButton.InvisibleButton() == True :
             global startTime
             startTime = pygame.time.get_ticks()
             isStart = True
             global isBegin
             isBegin = True
-        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        if pygame.key.get_pressed()[pygame.K_ESCAPE] or exitButton.InvisibleButton() == True:
             sys.exit()
 
 
@@ -618,7 +647,8 @@ monster_kill = pygame.mixer.Sound("sound/monster_kill.wav") # dzwiek przy zabici
 kill = pygame.mixer.Sound("sound/kill.wav") # dzwiek przy zabiciu
 icon = pygame.transform.scale(pygame.image.load("images/icon.png"), (32,32))
 
-
+playButton = Button(315,300,180,100)
+exitButton = Button(315,430,180,100)
 countDeaths = 360
 gameObjects = [] # lista obiektow gry
 clock = pygame.time.Clock() # zegar gry
@@ -629,9 +659,17 @@ pygame.display.set_icon(icon)
 background = Pictures("images/b.jpg",screen.get_width(), screen.get_height()) # ustawienie tla gry i ustalenie mu szerokosci i wysokosci jako szerokosc i wysokosc calego okna
 backgroundPanel = Pictures("images/panel.jpg",screen.get_width(), screen.get_height()) # ustawienie tla gry i ustalenie mu szerokosci i wysokosci jako szerokosc i wysokosc calego okna
 panelPicture = Pictures("images/napis.png",500, 200)
-panelOptions = Pictures("images/napisy2.png",300,280)
+
+panelPlayOption = Pictures("images/play.png",180,100)
+panelPlayFocusedOption = Pictures("images/playFocused.png",180,100)
+
+panelExitOption = Pictures("images/exit.png",180,100)
+panelExitFocusedOption = Pictures("images/exitFocused.png",180,100)
+
 lives = Pictures("images/lives.png",23,25)
 scoreAndName = Pictures("images/ScoreAndName.png",500,100)
+
+laserPicture = LoadImage("images/laser.png",1,(0,0,10,600))
 
 
 player = Player("images/playership.bmp", 2, (25,1,23,23), explosion, screen) # obiekt typu Player
@@ -690,6 +728,9 @@ while mainLoop: # glowna petla gry
         if event.type == pygame.QUIT:  # porownanie typu okna czy nie jest to button zamykajacy
             sys.exit()  # jesli bedzie to on wtedy okno zostaje zamkniete
 
+
+
+
     if isStart == True:
         if moreObjects == True:
             for i in range(2):
@@ -745,29 +786,34 @@ while mainLoop: # glowna petla gry
             # screen.blit(waveLabel, (0, 0))
 
             if live == 3:
-                screen.blit(lives.image, (0, 0))
-                screen.blit(lives.image, (30, 0))
-                screen.blit(lives.image, (60, 0))
+                screen.blit(lives.image, (15, 0))
+                screen.blit(lives.image, (45, 0))
+                screen.blit(lives.image, (75, 0))
             if live == 2:
-                screen.blit(lives.image, (0, 0))
-                screen.blit(lives.image, (30, 0))
+                screen.blit(lives.image, (15, 0))
+                screen.blit(lives.image, (45, 0))
             if live == 1:
-                screen.blit(lives.image, (0, 0))
+                screen.blit(lives.image, (15, 0))
+
+            screen.blit(laserPicture, (0,0))
+            screen.blit(laserPicture, (790, 0))
+
 
 
 
 
             waves = pygame.font.SysFont("Arial", 30, bold="TRUE")
             waveLabel = waves.render("SCORE : " + str(score), 1, (0, 255, 0))
-            screen.blit(waveLabel, (0, 570))
+            screen.blit(waveLabel, (15, 570))
 
             level = pygame.font.SysFont("Arial", 30, bold="TRUE")
             levelLabel = level.render("LEVEL : " + str(levell), 1, (0, 255, 0))
-            screen.blit(levelLabel, (650, 570))
+            screen.blit(levelLabel, (630, 570))
 
             kil = pygame.font.SysFont("Arial", 30, bold="TRUE")
             kilLabel = kil.render("KILLS : " + str(kills), 1, (0, 255, 0))
-            screen.blit(kilLabel, (650, 0))
+            screen.blit(kilLabel, (630, 0))
+
 
             shot.update(player)
 
